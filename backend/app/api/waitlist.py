@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from fastapi import APIRouter, Request
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy import select, text
 
 from app.db.database import engine
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 class WaitlistRequest(BaseModel):
-    email: EmailStr
+    email: str
     source: str = "landing_page"
 
 
