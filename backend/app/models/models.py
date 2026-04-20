@@ -10,6 +10,17 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
+class WaitlistEntry(Base):
+    __tablename__ = "waitlist"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    source = Column(String(100), default="landing_page")
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class PlanTier(str, enum.Enum):
     FREE = "free"
     STARTER = "starter"

@@ -13,13 +13,13 @@ from app.api.compliance import router as compliance_router
 from app.api.billing import router as billing_router
 from app.api.analytics import router as analytics_router
 from app.api.catalog import router as catalog_router
+from app.api.waitlist import router as waitlist_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup (in dev; use Alembic in prod)
-    if settings.APP_ENV == "development":
-        await init_db()
+    # Create tables on startup
+    await init_db()
     yield
 
 
@@ -47,6 +47,7 @@ app.include_router(compliance_router, prefix="/api/compliance", tags=["Complianc
 app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(catalog_router, prefix="/api/catalog", tags=["Catalog"])
+app.include_router(waitlist_router, prefix="/api/waitlist", tags=["Waitlist"])
 
 
 @app.get("/health")

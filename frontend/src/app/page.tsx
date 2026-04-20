@@ -82,15 +82,45 @@ const features = [
   },
 ];
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://whatsapp-commerce-api.fly.dev";
+
 function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
   const [email, setEmail] = useState("");
   const [waitlisted, setWaitlisted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [position, setPosition] = useState<number | null>(null);
+
+  const handleSubmit = async () => {
+    if (!email || !email.includes("@")) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/api/waitlist/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "landing_page" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWaitlisted(true);
+        setPosition(data.position);
+      } else {
+        setError(data.message || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (waitlisted) {
     return (
       <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-center">
         <div className="text-lg font-semibold mb-1">You&apos;re on the list! 🎉</div>
         <p className="text-sm">We&apos;ll notify you at <strong>{email}</strong> when early access is ready.</p>
+        {position && <p className="text-xs text-emerald-600 mt-1">You&apos;re #{position} on the waitlist.</p>}
       </div>
     );
   }
@@ -98,22 +128,25 @@ function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
   const py = size === "large" ? "py-3" : "py-2.5";
 
   return (
-    <div className="flex flex-col sm:flex-row gap-3 w-full">
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className={`flex-1 px-4 ${py} rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition`}
-      />
-      <button
-        onClick={() => {
-          if (email && email.includes("@")) setWaitlisted(true);
-        }}
-        className={`bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 ${py} rounded-xl transition whitespace-nowrap`}
-      >
-        Join Waitlist
-      </button>
+    <div>
+      <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+          className={`flex-1 px-4 ${py} rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition`}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className={`bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-semibold px-6 ${py} rounded-xl transition whitespace-nowrap`}
+        >
+          {submitting ? "Joining..." : "Join Waitlist"}
+        </button>
+      </div>
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 }
