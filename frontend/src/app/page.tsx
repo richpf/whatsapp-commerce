@@ -86,6 +86,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://whatsapp-commerce-ap
 
 function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
   const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [whatsappOptIn, setWhatsappOptIn] = useState(true);
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
   const [waitlisted, setWaitlisted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -99,7 +102,12 @@ function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
       const res = await fetch(`${API_URL}/api/waitlist/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "landing_page" }),
+        body: JSON.stringify({
+          email,
+          whatsapp_number: whatsapp || null,
+          whatsapp_opt_in: whatsappOptIn && !!whatsapp,
+          source: "landing_page",
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -120,6 +128,7 @@ function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
       <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-center">
         <div className="text-lg font-semibold mb-1">You&apos;re on the list! 🎉</div>
         <p className="text-sm">We&apos;ll notify you at <strong>{email}</strong> when early access is ready.</p>
+        {whatsapp && <p className="text-sm mt-1">We&apos;ll also send you a WhatsApp message when it&apos;s your turn.</p>}
         {position && <p className="text-xs text-emerald-600 mt-1">You&apos;re #{position} on the waitlist.</p>}
       </div>
     );
@@ -135,17 +144,58 @@ function WaitlistForm({ size = "default" }: { size?: "default" | "large" }) {
           placeholder="Enter your email"
           value={email}
           onChange={(e) => { setEmail(e.target.value); setError(""); }}
-          onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+          onKeyDown={(e) => { if (e.key === "Enter" && !showWhatsapp) { e.preventDefault(); setShowWhatsapp(true); } }}
           className={`flex-1 px-4 ${py} rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition`}
         />
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          className={`bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-semibold px-6 ${py} rounded-xl transition whitespace-nowrap`}
-        >
-          {submitting ? "Joining..." : "Join Waitlist"}
-        </button>
+        {!showWhatsapp && (
+          <button
+            onClick={() => {
+              if (email && email.includes("@")) setShowWhatsapp(true);
+            }}
+            className={`bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 ${py} rounded-xl transition whitespace-nowrap`}
+          >
+            Join Waitlist
+          </button>
+        )}
       </div>
+
+      {showWhatsapp && (
+        <div className="mt-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">💬</span>
+            <span className="text-sm text-gray-600">Get notified faster via WhatsApp <span className="text-gray-400">(optional)</span></span>
+          </div>
+          <input
+            type="tel"
+            placeholder="+91 98765 43210"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+            className={`w-full px-4 ${py} rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition`}
+          />
+          {whatsapp && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={whatsappOptIn}
+                onChange={(e) => setWhatsappOptIn(e.target.checked)}
+                className="mt-1 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+              />
+              <span className="text-xs text-gray-500">
+                I agree to receive WhatsApp messages about ChatCommerce early access and updates. You can opt out anytime.
+              </span>
+            </label>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-300 text-white font-semibold px-6 py-2.5 rounded-xl transition"
+          >
+            {submitting ? "Joining..." : whatsapp ? "Join with Email + WhatsApp" : "Join with Email Only"}
+          </button>
+        </div>
+      )}
+
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );

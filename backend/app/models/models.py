@@ -15,6 +15,8 @@ class WaitlistEntry(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
+    whatsapp_number = Column(String(20), nullable=True, index=True)
+    whatsapp_opt_in = Column(Boolean, default=False)
     source = Column(String(100), default="landing_page")
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
