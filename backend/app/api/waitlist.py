@@ -39,7 +39,7 @@ async def join_waitlist(data: WaitlistRequest, request: Request):
             wa_number = cleaned
 
     async with engine.begin() as conn:
-        # Ensure table exists
+        # Ensure table and columns exist
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS waitlist (
                 id SERIAL PRIMARY KEY,
@@ -52,6 +52,12 @@ async def join_waitlist(data: WaitlistRequest, request: Request):
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """))
+        # Add columns if they don't exist (migration for existing tables)
+        for col_sql in [
+            "ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS whatsapp_number VARCHAR(20)",
+            "ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS whatsapp_opt_in BOOLEAN DEFAULT FALSE",
+        ]:
+            await conn.execute(text(col_sql))
 
         # Check if already on waitlist
         result = await conn.execute(
