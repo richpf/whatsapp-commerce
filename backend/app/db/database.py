@@ -4,12 +4,15 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
-# Fly.io sets DATABASE_URL as postgres:// but SQLAlchemy async needs postgresql+asyncpg://
+# Fly.io sets DATABASE_URL as postgres://...?sslmode=disable
+# asyncpg needs postgresql+asyncpg:// and doesn't accept sslmode as query param
 _db_url = settings.DATABASE_URL
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 elif _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+# Strip sslmode param (asyncpg uses ssl= not sslmode=)
+_db_url = _db_url.replace("?sslmode=disable", "").replace("&sslmode=disable", "")
 
 engine = create_async_engine(
     _db_url,
