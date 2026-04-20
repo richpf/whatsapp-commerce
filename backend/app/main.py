@@ -16,10 +16,18 @@ from app.api.catalog import router as catalog_router
 from app.api.waitlist import router as waitlist_router
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup
-    await init_db()
+    # Try to create tables, but don't block startup if DB is slow
+    try:
+        await init_db()
+        logger.info("Database tables initialized")
+    except Exception as e:
+        logger.warning(f"DB init failed (will retry on first request): {e}")
     yield
 
 

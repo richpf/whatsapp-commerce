@@ -17,8 +17,11 @@ _db_url = _db_url.replace("?sslmode=disable", "").replace("&sslmode=disable", ""
 engine = create_async_engine(
     _db_url,
     echo=settings.DEBUG,
-    pool_size=20,
-    max_overflow=10,
+    pool_size=5,
+    max_overflow=5,
+    pool_timeout=10,
+    pool_pre_ping=True,
+    connect_args={"timeout": 10},
 )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
