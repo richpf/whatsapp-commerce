@@ -14,6 +14,7 @@ from app.api.billing import router as billing_router
 from app.api.analytics import router as analytics_router
 from app.api.catalog import router as catalog_router
 from app.api.waitlist import router as waitlist_router
+from app.api.survey import router as survey_router
 
 
 import logging
@@ -56,6 +57,7 @@ app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(catalog_router, prefix="/api/catalog", tags=["Catalog"])
 app.include_router(waitlist_router, prefix="/api/waitlist", tags=["Waitlist"])
+app.include_router(survey_router, prefix="/api/survey", tags=["Survey"])
 
 
 @app.get("/health")
